@@ -1,0 +1,88 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "id": 1,
+      "title": "Bankroll",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_bankroll_usd", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "id": 2,
+      "title": "Cumulative PnL",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_pnl_usd", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "id": 3,
+      "title": "Win Rate (rolling 50)",
+      "type": "timeseries",
+      "targets": [{"expr": "sum_over_time(pmbot_trade_outcome[50m]) / count_over_time(pmbot_trade_outcome[50m])", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "id": 4,
+      "title": "Signal Weights",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_weight", "legendFormat": "{{name}}", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "id": 5,
+      "title": "Fusion Confidence",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_fusion_confidence", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "id": 6,
+      "title": "WS Reconnects (rate)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_ws_reconnects_total[5m])", "legendFormat": "{{source}}", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "id": 7,
+      "title": "API Errors (rate)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_api_errors_total[5m])", "legendFormat": "{{source}}", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "id": 8,
+      "title": "Trades (counts)",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_trades_total", "legendFormat": "{{outcome}}", "refId": "A"}]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["polymarket", "btc", "trading"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Polymarket BTC Bot",
+  "uid": "pmbot",
+  "version": 1,
+  "weekStart": ""
+}
