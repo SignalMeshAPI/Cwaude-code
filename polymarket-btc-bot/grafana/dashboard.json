@@ -1,0 +1,279 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "type": "row",
+      "id": 100,
+      "title": "Performance KPIs",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 10}, {"color": "green", "value": 50}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 0, "y": 1},
+      "id": 1,
+      "title": "Bankroll",
+      "type": "stat",
+      "options": {"colorMode": "background", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "pmbot_bankroll_usd", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0}, {"color": "green", "value": 0.01}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 4, "y": 1},
+      "id": 2,
+      "title": "Cumulative PnL",
+      "type": "stat",
+      "options": {"colorMode": "background", "graphMode": "area", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "pmbot_pnl_usd", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 1, "min": 0, "max": 1, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0.45}, {"color": "green", "value": 0.55}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 8, "y": 1},
+      "id": 3,
+      "title": "Win Rate (50)",
+      "type": "stat",
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "avg_over_time(pmbot_trade_outcome[6h])", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "blue", "value": null}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 12, "y": 1},
+      "id": 4,
+      "title": "Trades Today",
+      "type": "stat",
+      "options": {"colorMode": "value", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "sum(increase(pmbot_trades_total{outcome=~\"won|lost\"}[1d]))", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "decimals": 1, "min": 0, "max": 1, "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0.05}, {"color": "green", "value": 0.15}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 16, "y": 1},
+      "id": 5,
+      "title": "Edge-gate Pass Rate",
+      "type": "stat",
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "rate(pmbot_edge_gate_total{passed=\"true\"}[1h]) / clamp_min(rate(pmbot_edge_gate_total[1h]), 0.0001)", "refId": "A"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "color": {"mode": "thresholds"}, "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}, {"color": "red", "value": 1}]}}, "overrides": []},
+      "gridPos": {"h": 5, "w": 4, "x": 20, "y": 1},
+      "id": 6,
+      "title": "Kill-switch Trips",
+      "type": "stat",
+      "options": {"colorMode": "background", "graphMode": "none", "reduceOptions": {"calcs": ["lastNotNull"]}},
+      "targets": [{"expr": "pmbot_kill_switch_trips_total", "refId": "A"}]
+    },
+    {
+      "type": "row",
+      "id": 101,
+      "title": "Equity & PnL",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 6},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "custom": {"lineWidth": 2, "fillOpacity": 15}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 7},
+      "id": 7,
+      "title": "Bankroll Over Time",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_bankroll_usd", "refId": "A", "legendFormat": "bankroll"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "currencyUSD", "custom": {"lineWidth": 2, "fillOpacity": 15}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 7},
+      "id": 8,
+      "title": "Cumulative PnL",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_pnl_usd", "refId": "A", "legendFormat": "pnl"}]
+    },
+    {
+      "type": "row",
+      "id": 102,
+      "title": "Per-Signal Direction",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 15},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "min": -1, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10, "gradientMode": "scheme"}, "color": {"mode": "continuous-RdYlGr"}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 16},
+      "id": 9,
+      "title": "Spike",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_value{name=\"spike\"}", "refId": "A", "legendFormat": "direction"}, {"expr": "pmbot_signal_confidence{name=\"spike\"}", "refId": "B", "legendFormat": "confidence"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "min": -1, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10, "gradientMode": "scheme"}, "color": {"mode": "continuous-RdYlGr"}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 16},
+      "id": 10,
+      "title": "Sentiment",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_value{name=\"sentiment\"}", "refId": "A", "legendFormat": "direction"}, {"expr": "pmbot_signal_confidence{name=\"sentiment\"}", "refId": "B", "legendFormat": "confidence"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "min": -1, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10, "gradientMode": "scheme"}, "color": {"mode": "continuous-RdYlGr"}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 16},
+      "id": 11,
+      "title": "Price Divergence",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_value{name=\"divergence\"}", "refId": "A", "legendFormat": "direction"}, {"expr": "pmbot_signal_confidence{name=\"divergence\"}", "refId": "B", "legendFormat": "confidence"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "min": -1, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10, "gradientMode": "scheme"}, "color": {"mode": "continuous-RdYlGr"}}, "overrides": []},
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 16},
+      "id": 12,
+      "title": "Microstructure",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_value{name=\"microstructure\"}", "refId": "A", "legendFormat": "direction"}, {"expr": "pmbot_signal_confidence{name=\"microstructure\"}", "refId": "B", "legendFormat": "confidence"}]
+    },
+    {
+      "type": "row",
+      "id": 103,
+      "title": "Fusion & Learning",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 22},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 30, "stacking": {"mode": "normal"}}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 23},
+      "id": 13,
+      "title": "Learned Signal Weights",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_signal_weight", "refId": "A", "legendFormat": "{{name}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "min": -1, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 23},
+      "id": 14,
+      "title": "Fusion Score",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_fusion_score", "refId": "A", "legendFormat": "score"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "percentunit", "min": 0, "max": 1, "custom": {"lineWidth": 2, "fillOpacity": 10}, "thresholds": {"mode": "absolute", "steps": [{"color": "red", "value": null}, {"color": "yellow", "value": 0.5}, {"color": "green", "value": 0.55}]}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 23},
+      "id": 15,
+      "title": "Fusion Confidence (gate=0.55)",
+      "type": "timeseries",
+      "targets": [{"expr": "pmbot_fusion_confidence", "refId": "A", "legendFormat": "confidence"}]
+    },
+    {
+      "type": "row",
+      "id": 104,
+      "title": "Risk Diagnostics",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 31},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 0, "y": 32},
+      "id": 16,
+      "title": "Risk Block Reasons",
+      "type": "piechart",
+      "options": {"reduceOptions": {"calcs": ["sum"]}, "pieType": "donut", "legend": {"showLegend": true, "displayMode": "table", "values": ["value", "percent"]}},
+      "targets": [{"expr": "increase(pmbot_risk_block_total[1h])", "refId": "A", "legendFormat": "{{reason}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 8, "y": 32},
+      "id": 17,
+      "title": "Edge Gate Pass vs Block (rate / 5m)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_edge_gate_total[5m])", "refId": "A", "legendFormat": "{{passed}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 8, "x": 16, "y": 32},
+      "id": 18,
+      "title": "Trade Outcomes (rate / 1h)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_trades_total[1h])", "refId": "A", "legendFormat": "{{outcome}}"}]
+    },
+    {
+      "type": "row",
+      "id": 105,
+      "title": "Infrastructure & IO",
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 40},
+      "collapsed": false,
+      "panels": []
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 6, "x": 0, "y": 41},
+      "id": 19,
+      "title": "WS Reconnects (rate / 5m)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_ws_reconnects_total[5m])", "refId": "A", "legendFormat": "{{source}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 6, "x": 6, "y": 41},
+      "id": 20,
+      "title": "API Errors (rate / 5m)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_api_errors_total[5m])", "refId": "A", "legendFormat": "{{source}}"}]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "s", "custom": {"lineWidth": 2}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 6, "x": 12, "y": 41},
+      "id": 21,
+      "title": "Order Latency (p50 / p95 / p99)",
+      "type": "timeseries",
+      "targets": [
+        {"expr": "histogram_quantile(0.50, sum(rate(pmbot_order_latency_seconds_bucket[5m])) by (le))", "refId": "A", "legendFormat": "p50"},
+        {"expr": "histogram_quantile(0.95, sum(rate(pmbot_order_latency_seconds_bucket[5m])) by (le))", "refId": "B", "legendFormat": "p95"},
+        {"expr": "histogram_quantile(0.99, sum(rate(pmbot_order_latency_seconds_bucket[5m])) by (le))", "refId": "C", "legendFormat": "p99"}
+      ]
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "fieldConfig": {"defaults": {"unit": "short", "custom": {"lineWidth": 2, "fillOpacity": 10}}, "overrides": []},
+      "gridPos": {"h": 8, "w": 6, "x": 18, "y": 41},
+      "id": 22,
+      "title": "Rate Limit Drops (rate / 5m)",
+      "type": "timeseries",
+      "targets": [{"expr": "rate(pmbot_rate_limit_drops_total[5m])", "refId": "A", "legendFormat": "{{source}}"}]
+    }
+  ],
+  "refresh": "10s",
+  "schemaVersion": 39,
+  "tags": ["polymarket", "btc", "trading"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Polymarket BTC Bot",
+  "uid": "pmbot",
+  "version": 2,
+  "weekStart": ""
+}
