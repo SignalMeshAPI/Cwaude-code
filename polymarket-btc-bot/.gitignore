@@ -19,7 +19,8 @@ htmlcov/
 .env.local
 .env.*.local
 
-data/
+# runtime SQLite/Redis data; intentionally only matches root-level /data
+/data/
 *.db
 *.db-journal
 *.sqlite

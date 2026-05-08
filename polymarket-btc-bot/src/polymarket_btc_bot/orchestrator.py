@@ -30,6 +30,7 @@ from polymarket_btc_bot.data.coinbase_rest import run_coinbase
 from polymarket_btc_bot.data.fear_greed import run_fear_greed
 from polymarket_btc_bot.data.market_state import MarketState
 from polymarket_btc_bot.data.social import run_social
+from polymarket_btc_bot.data.solana_rest import run_solana
 from polymarket_btc_bot.execution.executor import Executor, OpenPosition
 from polymarket_btc_bot.execution.market_finder import MarketFinder, MarketInfo
 from polymarket_btc_bot.execution.polymarket_client import (
@@ -53,23 +54,32 @@ from polymarket_btc_bot.state.redis_state import RedisState
 log = get_logger(__name__)
 
 
-def _build_signals() -> list[Signal]:
-    return [SpikeDetector(), SentimentAnalyzer(), PriceDivergence(), Microstructure()]
+def _build_signals(cfg: Settings) -> list[Signal]:
+    return [
+        SpikeDetector(threshold_z=cfg.spike_threshold_z),
+        SentimentAnalyzer(),
+        PriceDivergence(threshold_bps=cfg.divergence_threshold_bps),
+        Microstructure(),
+    ]
 
 
 class Orchestrator:
-    def __init__(self, cfg: Settings, *, force_paper: bool = False):
+    def __init__(self, cfg: Settings, *, force_paper: bool = False, test_mode: bool = False):
         self._cfg = cfg
         self._force_paper = force_paper
+        # In test_mode the trading-decision loop runs every 10s instead of
+        # every 30s. Kept narrow on purpose: market discovery still uses the
+        # real 15-minute Polymarket cycle. Useful for end-to-end smoke checks.
+        self._trading_loop_interval = 10.0 if test_mode else 30.0
         self._state = MarketState()
-        self._signals: list[Signal] = _build_signals()
+        self._signals: list[Signal] = _build_signals(cfg)
         self._signal_names = [s.name for s in self._signals]
 
         self._store = TradeStore(cfg.learning_db_path)
         self._learner = LearningEngine(cfg, self._store, self._signal_names)
         self._risk = RiskEngine(cfg)
         self._market_finder = MarketFinder(cfg.polymarket_gamma_host)
-        self._redis = RedisState.from_url(cfg.redis_url)
+        self._redis = RedisState.from_url(cfg.effective_redis_url())
         self._client: PolymarketClientProtocol | None = None
         self._executor: Executor | None = None
 
@@ -110,6 +120,7 @@ class Orchestrator:
             tg.create_task(run_orderbook_imbalance(self._state, self._cfg.binance_futures_ws), name="depth")
             tg.create_task(run_coinbase(self._state, self._cfg.coinbase_rest), name="coinbase")
             tg.create_task(run_fear_greed(self._state, self._cfg.fear_greed_url), name="fear_greed")
+            tg.create_task(run_solana(self._state, self._cfg.solana_rest), name="solana")
             tg.create_task(
                 run_social(
                     self._state,
@@ -126,13 +137,13 @@ class Orchestrator:
     # ----- loops -------------------------------------------------------------
 
     async def _trading_loop(self) -> None:
-        """Decision and entry loop. Runs every 30s; only opens once per market."""
+        """Decision and entry loop. Only opens once per market."""
         while True:
             try:
                 await self._maybe_open_position()
             except Exception as exc:  # noqa: BLE001
                 log.exception("trading_loop.error", error=str(exc))
-            await asyncio.sleep(30)
+            await asyncio.sleep(self._trading_loop_interval)
 
     async def _monitor_loop(self) -> None:
         """Settlement & SL/TP check loop. Runs every 5s."""

@@ -69,6 +69,29 @@ async def test_sentiment_no_data_yields_zero_confidence():
 
 
 @pytest.mark.asyncio
+async def test_sentiment_uses_sol_momentum_when_available():
+    state = MarketState()
+    state.sol_1h_return = 0.025  # +2.5% SOL pump in last hour
+    state.sol_1h_return_ts = time.time()
+    r = await SentimentAnalyzer().value(state)
+    # Only SOL is providing input; direction should be positive, confidence > 0
+    assert r.direction > 0
+    assert r.confidence > 0
+
+
+@pytest.mark.asyncio
+async def test_sentiment_sol_dump_pulls_direction_negative():
+    state = MarketState()
+    state.fear_greed = 55  # mildly greedy = +0.1
+    state.fear_greed_ts = time.time()
+    state.sol_1h_return = -0.03  # -3% SOL dump
+    state.sol_1h_return_ts = time.time()
+    r = await SentimentAnalyzer().value(state)
+    # Strong negative SOL move should drag the blend negative despite FNG=55
+    assert r.direction < 0
+
+
+@pytest.mark.asyncio
 async def test_price_divergence_positive_when_binance_above_coinbase():
     state = MarketState()
     now = time.time()

@@ -8,10 +8,14 @@ from polymarket_btc_bot.data.market_state import MarketState
 from polymarket_btc_bot.signals.base import SignalReading, clip
 
 WARMUP_BARS = 20  # need at least this many 1m closes to score
+DEFAULT_THRESHOLD_Z = 3.0  # z-score that maps to confidence=1.0
 
 
 class SpikeDetector:
     name = "spike"
+
+    def __init__(self, threshold_z: float = DEFAULT_THRESHOLD_Z):
+        self._threshold_z = max(0.5, threshold_z)
 
     async def value(self, state: MarketState) -> SignalReading:
         closes = list(state.binance_1m_closes)
@@ -35,7 +39,7 @@ class SpikeDetector:
             return SignalReading(self.name, 0.0, 0.0)
 
         z = (last - mean) / sd
-        # direction = sign of z; magnitude/3 mapped to confidence
-        direction = clip(z / 3.0, -1.0, 1.0)
-        confidence = clip(abs(z) / 3.0, 0.0, 1.0)
+        # direction = sign of z; |z| / threshold mapped to confidence
+        direction = clip(z / self._threshold_z, -1.0, 1.0)
+        confidence = clip(abs(z) / self._threshold_z, 0.0, 1.0)
         return SignalReading(self.name, direction, confidence)

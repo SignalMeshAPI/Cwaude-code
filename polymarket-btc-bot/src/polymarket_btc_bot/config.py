@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import AliasChoices, Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -35,8 +35,16 @@ class Settings(BaseSettings):
         extra="ignore",
     )
 
-    # Wallet & Polymarket
-    polymarket_private_key: SecretStr = Field(default=SecretStr(""))
+    # Wallet & Polymarket. POLYMARKET_PK is accepted as an alias to match
+    # the upstream aulekator bot's env var naming.
+    polymarket_private_key: SecretStr = Field(
+        default=SecretStr(""),
+        validation_alias=AliasChoices("polymarket_private_key", "polymarket_pk"),
+    )
+    # Pre-supplied L2 API creds skip the derivation step. Optional.
+    polymarket_api_key: str = ""
+    polymarket_api_secret: SecretStr = SecretStr("")
+    polymarket_passphrase: SecretStr = SecretStr("")
     polymarket_host: str = "https://clob.polymarket.com"
     polymarket_gamma_host: str = "https://gamma-api.polymarket.com"
     polygon_rpc_url: str = "https://polygon-rpc.com"
@@ -46,8 +54,12 @@ class Settings(BaseSettings):
     pmbot_mode: Literal["live", "paper"] = "paper"
     metrics_port: int = 9100
 
-    # Risk caps
-    max_bet_usd: float = 2.0
+    # Risk caps. MAX_POSITION_SIZE is accepted as an alias to MAX_BET_USD
+    # for compatibility with the upstream bot's env naming.
+    max_bet_usd: float = Field(
+        default=2.0,
+        validation_alias=AliasChoices("max_bet_usd", "max_position_size"),
+    )
     stop_loss_pct: float = 0.30
     take_profit_pct: float = 0.20
     min_edge_confidence: float = 0.55
@@ -57,20 +69,29 @@ class Settings(BaseSettings):
     kill_switch_consecutive_losses: int = 5
     min_bankroll_usd: float = 10.0
 
+    # Signal-tuning thresholds (override the per-signal defaults).
+    spike_threshold_z: float = 3.0     # z-score that maps to confidence=1.0
+    divergence_threshold_bps: float = 5.0  # bps spread that maps to confidence=1.0
+
     # Data sources
     binance_ws_url: str = "wss://stream.binance.com:9443/ws"
     binance_futures_rest: str = "https://fapi.binance.com"
     binance_futures_ws: str = "wss://fstream.binance.com/ws"
     coinbase_rest: str = "https://api.exchange.coinbase.com"
     fear_greed_url: str = "https://api.alternative.me/fng/"
+    solana_rest: str = "https://api.coinbase.com/v2"  # /prices/SOL-USD/spot
 
     reddit_client_id: str = ""
     reddit_client_secret: SecretStr = SecretStr("")
     reddit_user_agent: str = "polymarket-btc-bot/0.1"
     reddit_subreddits: str = "Bitcoin,CryptoCurrency"
 
-    # Redis
+    # Redis. URL is preferred but legacy host/port/db env vars are honored
+    # if the URL is left at its default.
     redis_url: str = "redis://redis:6379/0"
+    redis_host: str = ""
+    redis_port: int = 0
+    redis_db: int = 0
 
     # Learning
     learning_db_path: str = "/data/learning.db"
@@ -149,6 +170,14 @@ class Settings(BaseSettings):
 
     def reddit_subreddit_list(self) -> list[str]:
         return [s.strip() for s in self.reddit_subreddits.split(",") if s.strip()]
+
+    def effective_redis_url(self) -> str:
+        """Build a redis URL from REDIS_HOST/PORT/DB if REDIS_URL is the default."""
+        if self.redis_host:
+            port = self.redis_port or 6379
+            db = self.redis_db or 0
+            return f"redis://{self.redis_host}:{port}/{db}"
+        return self.redis_url
 
 
 _cached: Settings | None = None

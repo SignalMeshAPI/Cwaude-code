@@ -10,11 +10,14 @@ from __future__ import annotations
 from polymarket_btc_bot.data.market_state import MarketState
 from polymarket_btc_bot.signals.base import SignalReading, clip
 
-THRESHOLD_BPS = 5.0  # 5 bps divergence = full confidence
+DEFAULT_THRESHOLD_BPS = 5.0  # 5 bps divergence = full confidence
 
 
 class PriceDivergence:
     name = "divergence"
+
+    def __init__(self, threshold_bps: float = DEFAULT_THRESHOLD_BPS):
+        self._threshold_bps = max(0.5, threshold_bps)
 
     async def value(self, state: MarketState) -> SignalReading:
         if not state.binance_last or not state.coinbase_last:
@@ -29,6 +32,6 @@ class PriceDivergence:
             return SignalReading(self.name, 0.0, 0.0)
 
         bps = (bp - cp) / cp * 10_000.0
-        direction = clip(bps / THRESHOLD_BPS, -1.0, 1.0)
-        confidence = clip(abs(bps) / THRESHOLD_BPS, 0.0, 1.0)
+        direction = clip(bps / self._threshold_bps, -1.0, 1.0)
+        confidence = clip(abs(bps) / self._threshold_bps, 0.0, 1.0)
         return SignalReading(self.name, direction, confidence)

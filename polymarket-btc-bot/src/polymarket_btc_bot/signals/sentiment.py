@@ -1,12 +1,20 @@
-"""Sentiment signal: Fear & Greed (62.5%) blended with Reddit VADER (37.5%)."""
+"""Sentiment signal: blend of Fear & Greed, Reddit VADER, and SOL momentum.
+
+The blend is over whichever inputs are available at the time of evaluation.
+Each component carries a fixed weight; total active weight is the "coverage"
+and bounds confidence so signals with thin data don't dominate.
+"""
 
 from __future__ import annotations
 
 from polymarket_btc_bot.data.market_state import MarketState
 from polymarket_btc_bot.signals.base import SignalReading, clip
 
-W_FNG = 0.625
-W_SOCIAL = 0.375
+W_FNG = 0.50      # Fear & Greed index (macro market mood)
+W_SOCIAL = 0.30   # Reddit VADER (retail sentiment)
+W_SOL = 0.20      # SOL 1h return as a crypto-wide pulse
+
+SOL_FULL_CONFIDENCE_RETURN = 0.02  # 2% in 1h = full confidence
 
 
 class SentimentAnalyzer:
@@ -23,13 +31,15 @@ class SentimentAnalyzer:
         if state.social_sentiment is not None:
             components.append((clip(state.social_sentiment, -1.0, 1.0), W_SOCIAL))
 
+        if state.sol_1h_return is not None:
+            sol_dir = clip(state.sol_1h_return / SOL_FULL_CONFIDENCE_RETURN, -1.0, 1.0)
+            components.append((sol_dir, W_SOL))
+
         if not components:
             return SignalReading(self.name, 0.0, 0.0)
 
         total_w = sum(w for _, w in components)
         direction = sum(d * w for d, w in components) / total_w
-        # Confidence scales with how much sentiment depth we have AND
-        # how far from neutral the blended reading is.
-        coverage = total_w  # 0..1, since W_FNG + W_SOCIAL == 1.0
+        coverage = total_w  # 0..1, since W_FNG + W_SOCIAL + W_SOL == 1.0
         confidence = clip(coverage * abs(direction), 0.0, 1.0)
         return SignalReading(self.name, direction, confidence)
